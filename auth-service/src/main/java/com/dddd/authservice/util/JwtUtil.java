@@ -1,5 +1,6 @@
 package com.dddd.authservice.util;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -25,5 +26,12 @@ public class JwtUtil {
                 .setIssuedAt(new Date(nowMillis))
                 .setExpiration(new Date(expMillis))
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY).compact();
+    }
+    public static Claims validateTokenAndGetClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 }
