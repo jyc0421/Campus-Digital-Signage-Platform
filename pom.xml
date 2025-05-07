@@ -37,7 +37,7 @@
         <java.version>17</java.version>
     </properties>
 
-    <!-- 🔧 管理所有依赖的版本号，不直接引入 -->
+    <!--  管理所有依赖的版本号，不直接引入 -->
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -97,7 +97,7 @@
         </dependencies>
     </dependencyManagement>
 
-    <!-- 🔧 子模块自动继承构建插件 -->
+    <!--  子模块自动继承构建插件 -->
     <build>
         <pluginManagement>
             <plugins>

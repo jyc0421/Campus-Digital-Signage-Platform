@@ -1,4 +1,5 @@
 FROM openjdk:17-jdk-slim
-ARG JAR_FILE=target/auth-service*.jar
-COPY ${JAR_FILE} app.jar
-ENTRYPOINT ["java", "-jar", "/app.jar"]
+WORKDIR /app
+COPY target/auth-service-*.jar app.jar
+ENTRYPOINT ["java", "-jar", "app.jar"]
+
