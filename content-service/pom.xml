@@ -12,6 +12,9 @@
 
     <artifactId>content-service</artifactId>
     <name>content-service</name>
+    <build>
+        <finalName>app</finalName>
+    </build>
 
     <dependencies>
         <dependency>

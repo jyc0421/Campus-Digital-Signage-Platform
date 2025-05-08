@@ -13,6 +13,10 @@
     <artifactId>payment-service</artifactId>
     <name>payment-service</name>
 
+    <build>
+        <finalName>app</finalName>
+    </build>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>

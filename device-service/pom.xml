@@ -12,6 +12,9 @@
 
     <artifactId>device-service</artifactId>
     <name>device-service</name>
+    <build>
+        <finalName>app</finalName>
+    </build>
 
     <dependencies>
         <dependency>

@@ -12,6 +12,10 @@
 
 	<artifactId>client-service</artifactId>
 	<name>client-service</name>
+	<build>
+		<finalName>app</finalName>
+	</build>
+
 
 	<dependencies>
 		<dependency>

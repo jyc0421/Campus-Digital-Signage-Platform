@@ -13,6 +13,9 @@
 
     <artifactId>gateway-service</artifactId>
     <name>gateway-service</name>
+    <build>
+        <finalName>app</finalName>
+    </build>
 
     <dependencies>
         <!-- Spring Cloud Gateway -->

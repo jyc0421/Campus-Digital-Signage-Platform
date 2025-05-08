@@ -13,6 +13,10 @@
 
     <artifactId>common-service</artifactId>
     <name>common-service</name>
+    <build>
+        <finalName>app</finalName>
+    </build>
+
 
     <dependencies>
         <dependency>

@@ -12,6 +12,9 @@
 
     <artifactId>schedule-service</artifactId>
     <name>schedule-service</name>
+    <build>
+        <finalName>app</finalName>
+    </build>
 
     <dependencies>
         <dependency>

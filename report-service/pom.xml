@@ -12,6 +12,10 @@
 
     <artifactId>report-service</artifactId>
     <name>report-service</name>
+    <build>
+        <finalName>app</finalName>
+    </build>
+
 
     <dependencies>
         <dependency>
