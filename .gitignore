@@ -39,8 +39,6 @@ out/
 *.err
 *.log
 *.iml
-*.yml
-/*.yml
  
 # OS generated files
 .DS_Store

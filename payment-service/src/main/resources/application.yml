@@ -1,0 +1,24 @@
+server:
+  address: 0.0.0.0
+  port: 8085
+
+spring:
+  application:
+    name: payment-service
+
+  datasource:
+    url: jdbc:mysql://dddd-db.c3cu28aqilh6.ap-southeast-1.rds.amazonaws.com:3306/dddd_platform?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: admin
+    password: shuaihaoshishabi
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
