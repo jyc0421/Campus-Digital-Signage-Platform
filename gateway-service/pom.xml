@@ -13,6 +13,24 @@
 
     <artifactId>gateway-service</artifactId>
     <name>gateway-service</name>
+    <build>
+        <finalName>app</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+
 
     <dependencies>
         <!-- Spring Cloud Gateway -->
@@ -25,12 +43,6 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- Spring Boot Web for actuator & dev use -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
         <!-- JWT 工具类（如要拦截验证 token） -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>

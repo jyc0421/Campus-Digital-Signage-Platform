@@ -1,0 +1,12 @@
+server:
+  address: 0.0.0.0
+  port: 8090
+
+spring:
+  application:
+    name: gateway-service
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
