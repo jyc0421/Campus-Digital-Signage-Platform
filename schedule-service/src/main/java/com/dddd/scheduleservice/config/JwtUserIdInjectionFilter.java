@@ -1,6 +1,6 @@
 package com.dddd.scheduleservice.config;
 
-import com.dddd.authservice.util.JwtUtil;
+import com.dddd.scheduleservice.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
