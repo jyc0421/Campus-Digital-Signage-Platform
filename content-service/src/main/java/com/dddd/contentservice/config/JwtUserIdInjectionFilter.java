@@ -1,6 +1,6 @@
 package com.dddd.contentservice.config;
 
-import com.dddd.authservice.util.JwtUtil;
+import com.dddd.contentservice.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
