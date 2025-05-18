@@ -3,6 +3,12 @@ server:
   port: 8087
 
 spring:
+  security:
+    user:
+      name: dummy
+      password: dummy
+    basic:
+      enabled: false
   application:
     name: schedule-service
 
@@ -22,3 +28,7 @@ logging:
   level:
     root: INFO
     org.springframework.web: DEBUG
+
+jwt:
+  secret: d3b0f9cce6c33f23a79fbd7dc08f4dc1f1f045a9e4d62c780f6b1e5a2b4c34d3
+
