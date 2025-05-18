@@ -32,6 +32,8 @@ logging:
 aliyun:
   oss:
     endpoint: https://oss-ap-southeast-1.aliyuncs.com
+    accessKeyId: LTAI5tQ1KGyLNavWb2aU36TP
+    accessKeySecret: HC2GYLE033TSwMdNs3rT7rIlON5w25
     bucketName: dddd-platform
 
 jwt:
