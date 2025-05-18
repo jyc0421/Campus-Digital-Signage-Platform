@@ -18,7 +18,23 @@ spring:
     show-sql: true
     open-in-view: false
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 2000MB
+      max-request-size: 2000MB
+
 logging:
   level:
     root: INFO
     org.springframework.web: DEBUG
+
+aliyun:
+  oss:
+    endpoint: https://oss-ap-southeast-1.aliyuncs.com
+    accessKeyId: ${ALIYUN_OSS_KEY_ID}
+    accessKeySecret: ${ALIYUN_OSS_KEY_SECRET}
+    bucketName: dddd-platform
+
+jwt:
+  secret: d3b0f9cce6c33f23a79fbd7dc08f4dc1f1f045a9e4d62c780f6b1e5a2b4c34d3

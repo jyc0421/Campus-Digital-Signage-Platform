@@ -14,6 +14,9 @@ import com.dddd.authservice.util.PasswordEncoderUtil;
 public class AuthService {
 
     @Autowired
+    private JwtUtil jwtUtil;
+
+    @Autowired
     private UserRepository userRepository;
 
     public String register(RegisterRequest request) {
@@ -50,7 +53,7 @@ public class AuthService {
             throw new RuntimeException("Invalid password");
         }
 
-        String token = JwtUtil.generateToken(user.getUsername(), user.getRole().name());
+        String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name(), user.getUserId());
         return new LoginResponse(token);
     }
 }
