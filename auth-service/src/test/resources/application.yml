@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+  main:
+    allow-bean-definition-overriding: true
+
+jwt:
+  secret: d3b0f9cce6c33f23a79fbd7dc08f4dc1f1f045a9e4d62c780f6b1e5a2b4c34d3
+
+logging:
+  level:
+    root: INFO

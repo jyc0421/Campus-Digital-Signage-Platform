@@ -5,6 +5,7 @@ import static org.mockito.Mockito.*;
 import com.dddd.authservice.dto.*;
 import com.dddd.authservice.entity.User;
 import com.dddd.authservice.repository.UserRepository;
+import com.dddd.authservice.util.JwtUtil;
 import com.dddd.authservice.util.PasswordEncoderUtil;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -23,9 +24,15 @@ class AuthServiceTest {
     @InjectMocks
     private AuthService authService;
 
+    @Mock
+    private JwtUtil jwtUtil;
+
+//    private PasswordEncoderUtil passwordEncoderUtil;
+
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
+//        passwordEncoderUtil = new PasswordEncoderUtil(); // 直接用真实对象
     }
 
     @Test
@@ -59,15 +66,19 @@ class AuthServiceTest {
         user.setUsername("testuser");
         user.setPasswordHash(PasswordEncoderUtil.encode("password"));
         user.setRole(User.Role.user);
+        user.setUserId(1L);
 
         LoginRequest request = new LoginRequest();
         request.setUsername("testuser");
         request.setPassword("password");
 
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
+        when(jwtUtil.generateToken("testuser", "user", 1L)).thenReturn("mock-jwt");
 
         LoginResponse response = authService.login(request);
+
         assertNotNull(response.getToken());
+        assertEquals("mock-jwt", response.getToken());
     }
 
     @Test
@@ -84,4 +95,5 @@ class AuthServiceTest {
 
         assertThrows(RuntimeException.class, () -> authService.login(request));
     }
+
 }

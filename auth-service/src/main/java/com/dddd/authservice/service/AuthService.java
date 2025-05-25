@@ -1,5 +1,6 @@
 package com.dddd.authservice.service;
 
+import com.dddd.authservice.exception.BusinessException;
 import com.dddd.authservice.dto.LoginRequest;
 import com.dddd.authservice.dto.LoginResponse;
 import com.dddd.authservice.dto.RegisterRequest;
@@ -46,11 +47,11 @@ public class AuthService {
     }
     public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BusinessException("User not found", 400));
 
         boolean matches = PasswordEncoderUtil.matches(request.getPassword(), user.getPasswordHash());
         if (!matches) {
-            throw new RuntimeException("Invalid password");
+            throw new BusinessException("Invalid credentials", 400);
         }
 
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name(), user.getUserId());

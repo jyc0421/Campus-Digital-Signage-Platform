@@ -4,6 +4,7 @@ import com.dddd.contentservice.dto.UploadResponse;
 import com.dddd.contentservice.entity.FileRecord;
 import com.dddd.contentservice.repository.FileRecordRepository;
 import com.dddd.contentservice.util.AliyunOssUtil;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class FileService {
 
     @Autowired

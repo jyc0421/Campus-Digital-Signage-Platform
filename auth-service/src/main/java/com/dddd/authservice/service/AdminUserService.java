@@ -4,6 +4,7 @@ import com.dddd.authservice.dto.CreateUserRequest;
 import com.dddd.authservice.dto.UpdateUserRequest;
 import com.dddd.authservice.dto.UserResponse;
 import com.dddd.authservice.entity.User;
+import com.dddd.authservice.exception.BusinessException;
 import com.dddd.authservice.repository.UserRepository;
 import com.dddd.authservice.util.PasswordEncoderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,14 +50,14 @@ public class AdminUserService {
 
     public String deleteUser(Long userId) {
         if (!userRepository.existsById(userId)) {
-            throw new RuntimeException("User not found");
+            throw new BusinessException("User not found", 400);
         }
         userRepository.deleteById(userId);
         return "User deleted successfully";
     }
     public String updateUser(Long userId, UpdateUserRequest request) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BusinessException("User not found", 400));
 
         if (request.getEmail() != null) {
             user.setEmail(request.getEmail());

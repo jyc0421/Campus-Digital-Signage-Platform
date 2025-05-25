@@ -1,5 +1,6 @@
 package com.dddd.contentservice.controller;
 
+import com.dddd.contentservice.dto.ApiResponse;
 import com.dddd.contentservice.dto.UploadResponse;
 import com.dddd.contentservice.entity.FileRecord;
 import com.dddd.contentservice.service.FileService;
@@ -27,24 +28,12 @@ public class FileController {
 
 
     @PostMapping("/upload")
-    public UploadResponse uploadFile(@RequestParam("file") MultipartFile file,
-                                     HttpServletRequest request) throws IOException {
+    public ApiResponse<UploadResponse> uploadFile(@RequestParam("file") MultipartFile file,
+                                                  HttpServletRequest request) throws IOException {
         Object uidAttr = request.getAttribute("userId");
-        System.out.println("📥 Controller 收到 userId: " + uidAttr);
-
-        if (uidAttr == null) {
-            throw new RuntimeException("❌ 用户未登录，userId 为 null");
-        }
-
-        Long userId = (Long) uidAttr;
-
-        try {
-            return fileService.upload(file, String.valueOf(userId));
-        } catch (Exception e) {
-            System.out.println("❌ 文件上传出错：" + e.getMessage());
-            e.printStackTrace();  // 🔥 输出堆栈
-            throw e;
-        }
+        Long userId = uidAttr instanceof Long ? (Long) uidAttr : Long.parseLong(uidAttr.toString());
+        UploadResponse response = fileService.upload(file, String.valueOf(userId));
+        return ApiResponse.success(response); // ✅ 使用统一包装
     }
 
     @GetMapping

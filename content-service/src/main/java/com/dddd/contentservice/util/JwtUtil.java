@@ -1,4 +1,4 @@
-package com.dddd.contentservice;
+package com.dddd.contentservice.util;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
