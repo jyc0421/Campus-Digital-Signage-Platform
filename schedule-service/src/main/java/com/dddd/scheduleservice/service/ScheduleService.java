@@ -63,7 +63,7 @@ public class ScheduleService {
             schedulePanelRepository.save(sp);
         }
 
-        return "Schedule created successfully";
+        return schedule.getId().toString();
     }
 
     public Page<ScheduleSummaryResponse> listSchedulesByUser(Long userId, int page, int size) {
