@@ -23,7 +23,7 @@ public class ScheduleController {
                                                  HttpServletRequest httpRequest) {
         Long userId = (Long) httpRequest.getAttribute("userId"); // JWT 中注入
         String msg = scheduleService.createSchedule(request, userId);
-        return ResponseEntity.ok(msg);
+        return ResponseEntity.ok("Successfully created schedule, id: " + msg);
     }
     @GetMapping
     public Page<ScheduleSummaryResponse> getUserSchedules(

@@ -21,6 +21,7 @@ public class ScheduleDetailResponse {
         private Long id;
         private String originalName;
         private String url;
+        private Integer orderNo; // 新增字段：播放顺序
     }
 
     @Data

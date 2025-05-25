@@ -1,9 +1,6 @@
 package com.dddd.scheduleservice.service;
 
-import com.dddd.scheduleservice.dto.CreateScheduleRequest;
-import com.dddd.scheduleservice.dto.ScheduleDetailResponse;
-import com.dddd.scheduleservice.dto.ScheduleSummaryResponse;
-import com.dddd.scheduleservice.dto.UpdateScheduleRequest;
+import com.dddd.scheduleservice.dto.*;
 import com.dddd.scheduleservice.entity.FileRecord;
 import com.dddd.scheduleservice.entity.Panel;
 import com.dddd.scheduleservice.entity.Schedule;
@@ -48,11 +45,11 @@ public class ScheduleService {
 
         schedule = scheduleRepository.save(schedule);
 
-        for (int i = 0; i < req.getContentIds().size(); i++) {
+        for (ContentOrderDTO contentDTO : req.getContents()) {
             ScheduleContent sc = new ScheduleContent();
             sc.setScheduleId(schedule.getId());
-            sc.setContentId(req.getContentIds().get(i));
-            sc.setOrderNo(i);
+            sc.setContentId(contentDTO.getContentId());
+            sc.setOrderNo(contentDTO.getOrderNo());
             scheduleContentRepository.save(sc);
         }
 
@@ -108,6 +105,7 @@ public class ScheduleService {
             ci.setId(f.getId());
             ci.setOriginalName(f.getOriginalName());
             ci.setUrl(f.getUrl());
+            ci.setOrderNo(scList.get(contentIds.indexOf(f.getId())).getOrderNo());
             return ci;
         }).toList();
         resp.setContents(contentItems);
@@ -147,20 +145,20 @@ public class ScheduleService {
         schedule.setUpdatedAt(LocalDateTime.now());
         scheduleRepository.save(schedule);
 
-        // 清除旧的关联记录
+        // 删除旧记录
         scheduleContentRepository.deleteAllByScheduleId(scheduleId);
         schedulePanelRepository.deleteAllByScheduleId(scheduleId);
 
-        // 重新保存内容绑定
-        for (int i = 0; i < req.getContentIds().size(); i++) {
+        // ✅ 重新保存内容绑定（使用显式顺序）
+        for (ContentOrderDTO item : req.getContents()) {
             ScheduleContent sc = new ScheduleContent();
             sc.setScheduleId(scheduleId);
-            sc.setContentId(req.getContentIds().get(i));
-            sc.setOrderNo(i);
+            sc.setContentId(item.getContentId());
+            sc.setOrderNo(item.getOrderNo());
             scheduleContentRepository.save(sc);
         }
 
-        // 重新保存面板绑定
+        // 保存面板绑定
         for (Long panelId : req.getPanelIds()) {
             SchedulePanel sp = new SchedulePanel();
             sp.setScheduleId(scheduleId);

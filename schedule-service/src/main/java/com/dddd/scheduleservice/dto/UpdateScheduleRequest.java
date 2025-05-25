@@ -12,6 +12,6 @@ public class UpdateScheduleRequest {
     private LocalDateTime endTime;
     private String repeatType; // ONCE / DAILY / WEEKLY
     private int priority;
-    private List<Long> contentIds;
+    private List<ContentOrderDTO> contents;
     private List<Long> panelIds;
 }
