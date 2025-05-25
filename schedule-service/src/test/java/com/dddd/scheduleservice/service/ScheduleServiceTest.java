@@ -1,7 +1,7 @@
 package com.dddd.scheduleservice.service;
 
+import com.dddd.scheduleservice.dto.ContentOrderDTO;
 import com.dddd.scheduleservice.dto.CreateScheduleRequest;
-import com.dddd.scheduleservice.dto.ScheduleDetailResponse;
 import com.dddd.scheduleservice.entity.*;
 import com.dddd.scheduleservice.repository.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,9 +62,14 @@ public class ScheduleServiceTest {
         request.setName("Test Schedule");
         request.setStartTime(LocalDateTime.now());
         request.setEndTime(LocalDateTime.now().plusHours(1));
-        request.setContentIds(List.of(1L, 2L));
+        ContentOrderDTO c1 = new ContentOrderDTO();
+        c1.setContentId(101L);
+        c1.setOrderNo(1);
+        ContentOrderDTO c2 = new ContentOrderDTO();
+        c2.setContentId(102L);
+        c2.setOrderNo(2);
+        request.setContents(List.of(c1, c2));
         request.setPanelIds(List.of(10L, 20L));
-
 
 
         // 修复空指针：确保模拟的 Schedule 不为 null
@@ -85,5 +90,5 @@ public class ScheduleServiceTest {
         verify(scheduleContentRepository, times(2)).save(any());
         verify(schedulePanelRepository, times(2)).save(any());
     }
-    
+
 }

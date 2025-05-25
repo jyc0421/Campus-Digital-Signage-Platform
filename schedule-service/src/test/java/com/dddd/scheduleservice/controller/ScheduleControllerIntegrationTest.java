@@ -1,8 +1,10 @@
 package com.dddd.scheduleservice.controller;
 
 import com.dddd.scheduleservice.config.TestSecurityConfig;
+import com.dddd.scheduleservice.dto.ContentOrderDTO;
 import com.dddd.scheduleservice.dto.CreateScheduleRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -49,13 +51,18 @@ class ScheduleControllerIntegrationTest {
         request.setEndTime(LocalDateTime.now().plusHours(1));
         request.setRepeatType("NONE");
         request.setPriority(1);
-        request.setContentIds(Collections.emptyList());
+        ContentOrderDTO c1 = new ContentOrderDTO();
+        c1.setContentId(101L);
+        c1.setOrderNo(1);
+        ContentOrderDTO c2 = new ContentOrderDTO();
+        c2.setContentId(102L);
+        c2.setOrderNo(2);
+        request.setContents(List.of(c1, c2));
         request.setPanelIds(Collections.emptyList());
 
         mockMvc.perform(post("/api/schedules")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(content().string("1"));  // 🔁 修改断言
-    }
+                .andExpect(content().string(Matchers.containsString("Successfully created schedule")));    }
 }
