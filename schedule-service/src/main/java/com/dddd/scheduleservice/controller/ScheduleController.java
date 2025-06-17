@@ -1,9 +1,6 @@
 package com.dddd.scheduleservice.controller;
 
-import com.dddd.scheduleservice.dto.CreateScheduleRequest;
-import com.dddd.scheduleservice.dto.ScheduleDetailResponse;
-import com.dddd.scheduleservice.dto.ScheduleSummaryResponse;
-import com.dddd.scheduleservice.dto.UpdateScheduleRequest;
+import com.dddd.scheduleservice.dto.*;
 import com.dddd.scheduleservice.service.ScheduleService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,5 +48,12 @@ public class ScheduleController {
         Long userId = (Long) httpRequest.getAttribute("userId");
         String msg = scheduleService.updateSchedule(id, request, userId);
         return ResponseEntity.ok(msg);
+    }
+
+    @GetMapping("/play-command")
+    public ResponseEntity<ApiResponse<PlayCommandDto>> getPlayCommand(
+            @RequestParam("panelId") Long panelId) {
+        PlayCommandDto command = scheduleService.getCurrentPlayCommand(panelId);
+        return ResponseEntity.ok(ApiResponse.success(command));
     }
 }

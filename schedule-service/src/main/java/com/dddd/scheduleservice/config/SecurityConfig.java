@@ -21,7 +21,13 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // 关闭 CSRF（适用于 JWT）
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/**").authenticated() // 所有 API 需要认证
+                        // ✅ 放行 Agent 接口
+                        .requestMatchers("/api/schedules/play-command").permitAll()
+
+                        // ✅ 其他 API 要求认证
+                        .requestMatchers("/api/**").authenticated()
+
+                        // ✅ 所有非 API 请求默认放行（如 Swagger、静态资源）
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

@@ -15,8 +15,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ScheduleService {
@@ -167,5 +169,19 @@ public class ScheduleService {
         }
 
         return "Schedule updated successfully";
+    }
+    public PlayCommandDto getCurrentPlayCommand(Long panelId) {
+        LocalDateTime now = LocalDateTime.now();
+
+        // 查找该 panel 当前有效 schedule（一次只返回一个，优先级高者优先）
+        Optional<Schedule> scheduleOpt = scheduleRepository.findActiveScheduleForPanel(panelId, now);
+
+        if (scheduleOpt.isEmpty()) return null;
+
+        Schedule schedule = scheduleOpt.get();
+        Duration remaining = Duration.between(now, schedule.getEndTime());
+        long durationInSeconds = Math.max(remaining.getSeconds(), 0);
+
+        return new PlayCommandDto(schedule.getId(), durationInSeconds);
     }
 }
