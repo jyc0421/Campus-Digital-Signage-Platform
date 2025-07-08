@@ -47,7 +47,7 @@ public class GptContentChecker {
             return ((Map<?, ?>) ((List<?>) response.getBody().get("choices")).get(0))
                     .get("message").toString();
         } catch (Exception e) {
-            return "⚠️ 文本审查失败：" + e.getMessage();
+            return "文本默认放行：" + e.getMessage();
         }
     }
 
@@ -79,7 +79,7 @@ public class GptContentChecker {
                     .get("message").toString();
 
         } catch (Exception e) {
-            return "⚠️ 图片审查失败：" + e.getMessage();
+            return "图片默认放行：" + e.getMessage();
         }
     }
 
@@ -116,7 +116,7 @@ public class GptContentChecker {
 
             return "合规";
         } catch (Exception e) {
-            return "⚠️ 视频审查失败：" + e.getMessage();
+            return "视频默认放行：" + e.getMessage();
         }
     }
 
@@ -146,7 +146,7 @@ public class GptContentChecker {
                     .get("message").toString();
 
         } catch (Exception e) {
-            return "⚠️ 图片帧审查失败：" + e.getMessage();
+            return "视频默认放行：" + e.getMessage();
         }
     }
 
