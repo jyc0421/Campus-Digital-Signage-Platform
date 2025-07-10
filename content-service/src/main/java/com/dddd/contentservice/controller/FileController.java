@@ -37,6 +37,11 @@ public class FileController {
     public ApiResponse<UploadResponse> uploadFile(@RequestParam("file") MultipartFile file,
                                                   HttpServletRequest request) throws IOException {
         Object uidAttr = request.getAttribute("userId");
+        System.out.println("📥 Controller 收到 userId: " + uidAttr);
+
+        if (uidAttr == null) {
+            throw new RuntimeException("❌ 用户未登录，userId 为 null");
+        }
         Long userId = uidAttr instanceof Long ? (Long) uidAttr : Long.parseLong(uidAttr.toString());
 
         // 1️⃣ 内容合规性审查
