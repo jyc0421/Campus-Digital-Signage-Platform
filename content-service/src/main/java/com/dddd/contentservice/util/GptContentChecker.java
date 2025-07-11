@@ -10,7 +10,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.File;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.Base64;
 import java.util.stream.Collectors;
@@ -44,8 +45,7 @@ public class GptContentChecker {
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
             ResponseEntity<Map> response = restTemplate.postForEntity(GPT_URL, request, Map.class);
 
-            return ((Map<?, ?>) ((List<?>) response.getBody().get("choices")).get(0))
-                    .get("message").toString();
+            return extractMessageFromResponse(response);
         } catch (Exception e) {
             return "文本放行：" + e.getMessage();
         }
@@ -75,9 +75,7 @@ public class GptContentChecker {
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
             ResponseEntity<Map> response = restTemplate.postForEntity(GPT_URL, request, Map.class);
 
-            return ((Map<?, ?>) ((List<?>) response.getBody().get("choices")).get(0))
-                    .get("message").toString();
-
+            return extractMessageFromResponse(response);
         } catch (Exception e) {
             return "图片放行：" + e.getMessage();
         }
@@ -90,22 +88,25 @@ public class GptContentChecker {
 
             File framesDir = new File("frames");
             framesDir.mkdirs();
-            new ProcessBuilder("ffmpeg", "-i", tmpVideo.getAbsolutePath(), "-vf", "fps=1/3", "frames/frame_%03d.png")
-                    .redirectErrorStream(true).start().waitFor();
+
+            Process extractFrames = new ProcessBuilder("ffmpeg", "-i", tmpVideo.getAbsolutePath(), "-vf", "fps=1/3", "frames/frame_%03d.png")
+                    .redirectErrorStream(true).start();
+            extractFrames.waitFor();  // ✅ 避免 SonarQube 报线程未处理异常
 
             List<File> frames = Arrays.stream(Objects.requireNonNull(framesDir.listFiles()))
                     .sorted().limit(3).collect(Collectors.toList());
 
             List<String> imageResults = new ArrayList<>();
             for (File frame : frames) {
-                byte[] bytes = java.nio.file.Files.readAllBytes(frame.toPath());
+                byte[] bytes = Files.readAllBytes(frame.toPath());
                 String base64 = Base64.getEncoder().encodeToString(bytes);
                 imageResults.add(checkImageBytes(base64));
             }
 
             File audioFile = new File("audio.mp3");
-            new ProcessBuilder("ffmpeg", "-i", tmpVideo.getAbsolutePath(), "-q:a", "0", "-map", "a", audioFile.getAbsolutePath())
-                    .redirectErrorStream(true).start().waitFor();
+            Process extractAudio = new ProcessBuilder("ffmpeg", "-i", tmpVideo.getAbsolutePath(), "-q:a", "0", "-map", "a", audioFile.getAbsolutePath())
+                    .redirectErrorStream(true).start();
+            extractAudio.waitFor();  // ✅ 保证线程阻塞执行
 
             String transcript = whisperTranscribe(audioFile);
             String audioCheck = checkText(transcript);
@@ -142,9 +143,8 @@ public class GptContentChecker {
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
             ResponseEntity<Map> response = restTemplate.postForEntity(GPT_URL, request, Map.class);
-            return ((Map<?, ?>) ((List<?>) response.getBody().get("choices")).get(0))
-                    .get("message").toString();
 
+            return extractMessageFromResponse(response);
         } catch (Exception e) {
             return "视频放行：" + e.getMessage();
         }
@@ -163,10 +163,33 @@ public class GptContentChecker {
             HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
             ResponseEntity<Map> response = restTemplate.postForEntity(WHISPER_URL, request, Map.class);
 
-            return (String) response.getBody().get("text");
+            Map<String, Object> bodyMap = response.getBody();
+            if (bodyMap != null && bodyMap.containsKey("text")) {
+                return (String) bodyMap.get("text");
+            } else {
+                return "⚠️ Whisper结果缺失";
+            }
 
         } catch (Exception e) {
             return "⚠️ Whisper转写失败：" + e.getMessage();
         }
+    }
+
+    private String extractMessageFromResponse(ResponseEntity<Map> response) {
+        if (response == null || response.getBody() == null) {
+            return "⚠️ OpenAI响应为空";
+        }
+
+        Object choicesObj = response.getBody().get("choices");
+        if (!(choicesObj instanceof List<?> list) || list.isEmpty()) {
+            return "⚠️ 响应格式不符合预期（choices）";
+        }
+
+        Object firstChoice = list.get(0);
+        if (firstChoice instanceof Map<?, ?> map && map.containsKey("message")) {
+            return map.get("message").toString();
+        }
+
+        return "⚠️ 无法提取message字段";
     }
 }
