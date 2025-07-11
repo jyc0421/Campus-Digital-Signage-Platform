@@ -109,10 +109,18 @@ public class GptContentChecker {
             }
 
             return "合规";
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // 正确处理 InterruptedException
+            return "视频分析中断：" + e.getMessage();
         } catch (Exception e) {
             return "视频放行：" + e.getMessage();
         } finally {
-            if (tmpVideo != null && tmpVideo.exists()) tmpVideo.delete();
+            if (tmpVideo != null && tmpVideo.exists()) {
+                boolean deleted = tmpVideo.delete();
+                if (!deleted) {
+                    System.err.println("⚠️ 临时文件删除失败：" + tmpVideo.getAbsolutePath());
+                }
+            }
         }
     }
 
