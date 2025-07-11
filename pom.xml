@@ -32,10 +32,12 @@
         <module>gateway-service</module>
     </modules>
 
-
     <properties>
+        <sonar.projectKey>your-project</sonar.projectKey>
+        <sonar.host.url>http://8.218.1.107:9000</sonar.host.url>
         <java.version>21</java.version>
     </properties>
+
 
     <!--  管理所有依赖的版本号，不直接引入 -->
     <dependencyManagement>
@@ -92,6 +94,11 @@
                 <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
+                </plugin>
+                <plugin>
+                    <groupId>org.sonarsource.scanner.maven</groupId>
+                    <artifactId>sonar-maven-plugin</artifactId>
+                    <version>3.9.1.2184</version>
                 </plugin>
             </plugins>
         </pluginManagement>
