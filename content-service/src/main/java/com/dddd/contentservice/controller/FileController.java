@@ -44,34 +44,34 @@ public class FileController {
         }
         Long userId = uidAttr instanceof Long ? (Long) uidAttr : Long.parseLong(uidAttr.toString());
 
-//        // 1️⃣ 内容合规性审查
-//        String fileType = file.getContentType();
-//        String fileName = file.getOriginalFilename();
-//
-//        // 默认先审查文件名（文本）
-//        String resultText = contentChecker.checkText(fileName);
-//        System.out.println("📄 文本审查：" + resultText);
-//        if (resultText.contains("违规")) {
-//            return ApiResponse.fail("❌ 文件名不合规：" + resultText);
-//        }
-//
-//        // 图片内容审查
-//        if (fileType != null && fileType.startsWith("image/")) {
-//            String result = contentChecker.checkImage(file);
-//            System.out.println("🖼️ 图片审查：" + result);
-//            if (result.contains("违规")) {
-//                return ApiResponse.fail("❌ 图片内容不合规：" + result);
-//            }
-//        }
-//
-//        // 视频内容审查
-//        if (fileType != null && fileType.startsWith("video/")) {
-//            String result = contentChecker.checkVideo(file);
-//            System.out.println("🎞️ 视频审查：" + result);
-//            if (result.contains("违规")) {
-//                return ApiResponse.fail("❌ 视频内容不合规：" + result);
-//            }
-//        }
+        // 1️⃣ 内容合规性审查
+        String fileType = file.getContentType();
+        String fileName = file.getOriginalFilename();
+
+        // 默认先审查文件名（文本）
+        String resultText = contentChecker.checkText(fileName);
+        System.out.println("📄 文本审查：" + resultText);
+        if (resultText.contains("违规")) {
+            return ApiResponse.fail("❌ 文件名不合规：" + resultText);
+        }
+
+        // 图片内容审查
+        if (fileType != null && fileType.startsWith("image/")) {
+            String result = contentChecker.checkImage(file);
+            System.out.println("🖼️ 图片审查：" + result);
+            if (result.contains("违规")) {
+                return ApiResponse.fail("❌ 图片内容不合规：" + result);
+            }
+        }
+
+        // 视频内容审查
+        if (fileType != null && fileType.startsWith("video/")) {
+            String result = contentChecker.checkVideo(file);
+            System.out.println("🎞️ 视频审查：" + result);
+            if (result.contains("违规")) {
+                return ApiResponse.fail("❌ 视频内容不合规：" + result);
+            }
+        }
 
         // 2️⃣ 合规 → 上传
         UploadResponse response = fileService.upload(file, String.valueOf(userId));
