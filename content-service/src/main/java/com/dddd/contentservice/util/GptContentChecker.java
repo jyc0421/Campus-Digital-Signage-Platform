@@ -124,7 +124,7 @@ public class GptContentChecker {
         }
     }
 
-    private String checkImageBytes(String base64Image) {
+    String checkImageBytes(String base64Image) {
         try {
             String fullData = "data:image/png;base64," + base64Image;
 
@@ -160,7 +160,7 @@ public class GptContentChecker {
         }
     }
 
-    private String whisperTranscribe(File audioFile) {
+    String whisperTranscribe(File audioFile) {
         try {
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
             body.add("file", new FileSystemResource(audioFile));
