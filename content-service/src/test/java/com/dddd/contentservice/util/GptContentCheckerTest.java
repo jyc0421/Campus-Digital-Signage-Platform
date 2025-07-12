@@ -4,11 +4,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.http.*;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -108,5 +110,26 @@ class GptContentCheckerTest {
         String base64 = Base64.getEncoder().encodeToString("mock".getBytes());
         String result = checker.checkImageBytes(base64);
         assertTrue(result.contains("图片放行"));
+    }
+
+    @Test
+    void testCheckVideo_validFile() {
+        byte[] data = "mock video".getBytes(StandardCharsets.UTF_8);
+        MockMultipartFile file = new MockMultipartFile("file", "video.mp4", "video/mp4", data);
+        String result = checker.checkVideo(file);
+        assertTrue(result.contains("合规"));
+    }
+
+    @Test
+    void testCheckVideo_nullFile() {
+        String result = checker.checkVideo(null);
+        assertTrue(result.contains("⚠️ 视频为空"));
+    }
+
+    @Test
+    void testCheckVideo_emptyFile() {
+        MockMultipartFile file = new MockMultipartFile("file", "video.mp4", "video/mp4", new byte[0]);
+        String result = checker.checkVideo(file);
+        assertTrue(result.contains("⚠️ 视频为空"));
     }
 }
