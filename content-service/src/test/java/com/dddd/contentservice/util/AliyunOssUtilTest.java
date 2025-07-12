@@ -8,8 +8,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -26,46 +28,38 @@ class AliyunOssUtilTest {
     private AliyunOssConfig config;
 
     @Mock
-    private OSS ossClient;
+    private OSS mockOssClient;
 
-    @Mock
-    private MultipartFile multipartFile;
-
-    @Mock
-    private OSSClientBuilder ossClientBuilder;
-
-    private AliyunOssUtil aliyunOssUtil;
+    private AliyunOssUtil ossUtil;
 
     @BeforeEach
-    void setUp() throws IOException {
-        // 直接注入 mock 的 builder
-        aliyunOssUtil = new AliyunOssUtil(config, ossClientBuilder);
-
+    void setUp() {
         when(config.getEndpoint()).thenReturn("https://oss-cn-shanghai.aliyuncs.com");
         when(config.getAccessKeyId()).thenReturn("testKeyId");
         when(config.getAccessKeySecret()).thenReturn("testSecret");
         when(config.getBucketName()).thenReturn("test-bucket");
 
-        when(ossClientBuilder.build(anyString(), anyString(), anyString()))
-                .thenReturn(ossClient);
-
-        when(multipartFile.getOriginalFilename()).thenReturn("test.jpg");
-        when(multipartFile.getInputStream()).thenReturn(new ByteArrayInputStream("fake".getBytes()));
+        ossUtil = Mockito.spy(new AliyunOssUtil());
+        ReflectionTestUtils.setField(ossUtil, "config", config);
+        doReturn(mockOssClient).when(ossUtil).createOssClient();
     }
 
     @Test
     void testUploadFile_success() throws IOException {
-        String url = aliyunOssUtil.uploadFile(multipartFile, "123");
+        MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "fake-image-content".getBytes());
+
+        String url = ossUtil.uploadFile(file, "123");
+
         assertTrue(url.contains("uploads/123/"));
-        verify(ossClient).putObject((String) eq("test-bucket"), contains("uploads/123/"), (InputStream) any());
-        verify(ossClient).shutdown();
+        verify(mockOssClient).putObject(eq("test-bucket"), contains("uploads/123/"), any(InputStream.class));
+        verify(mockOssClient).shutdown();
     }
 
     @Test
     void testDeleteFile_success() {
-        aliyunOssUtil.deleteFile("uploads/123/file.jpg");
-        verify(ossClient).deleteObject("test-bucket", "uploads/123/file.jpg");
-        verify(ossClient).shutdown();
+        ossUtil.deleteFile("uploads/123/test.jpg");
+
+        verify(mockOssClient).deleteObject("test-bucket", "uploads/123/test.jpg");
+        verify(mockOssClient).shutdown();
     }
 }
-
