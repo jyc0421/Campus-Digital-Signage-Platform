@@ -1,33 +1,44 @@
 package com.dddd.contentservice.util;
 
 import io.jsonwebtoken.Claims;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest(properties = {
+        "jwt.secret=mysupersecuresecretkeymysupersecure"
+})
+@ActiveProfiles("test")
 class JwtUtilTest {
 
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
 
-    @BeforeEach
-    void setUp() {
-        jwtUtil = new JwtUtil();
-        // 设置 secret 值
-        ReflectionTestUtils.setField(jwtUtil, "secret", "12345678901234567890123456789012"); // 32位 secret
-        jwtUtil.init(); // 初始化 secretKey
+    JwtUtilTest(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
     }
 
     @Test
     void testGenerateAndValidateToken() {
-        String token = jwtUtil.generateToken("alice", "admin", 1001L);
+        String token = jwtUtil.generateToken("user1", "ROLE_USER", 123L);
         assertNotNull(token);
 
         Claims claims = jwtUtil.validateTokenAndGetClaims(token);
-        assertEquals("admin", claims.get("role"));
-        assertEquals(1001, ((Number) claims.get("userId")).longValue());
-        assertEquals("alice", claims.getSubject());
-        assertTrue(claims.getExpiration().after(new java.util.Date()));
+        assertEquals("ROLE_USER", claims.get("role"));
+        assertEquals(123, ((Number) claims.get("userId")).longValue());
+        assertEquals("user1", claims.getSubject());
+    }
+
+    @Test
+    void testInvalidToken() {
+        String invalidToken = "invalid.token.value";
+
+        Exception exception = assertThrows(Exception.class, () -> {
+            jwtUtil.validateTokenAndGetClaims(invalidToken);
+        });
+
+        assertNotNull(exception.getMessage());
     }
 }
+

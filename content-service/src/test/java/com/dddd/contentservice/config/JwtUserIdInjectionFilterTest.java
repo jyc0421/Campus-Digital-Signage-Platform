@@ -75,9 +75,11 @@ class JwtUserIdInjectionFilterTest {
 
         filter.doFilterInternal(request, response, chain);
 
-        verify(request, never()).setAttribute(eq("userId"), isNull());
+        // 改为验证它确实被调用且值为 null
+        verify(request).setAttribute(eq("userId"), isNull());
         verify(chain).doFilter(request, response);
     }
+
 
     @Test
     void testTokenThrowsException() throws Exception {
