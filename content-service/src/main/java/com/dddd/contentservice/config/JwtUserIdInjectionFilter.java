@@ -20,7 +20,7 @@ import java.util.Collections;
 @Component
 public class JwtUserIdInjectionFilter extends OncePerRequestFilter {
     @Autowired
-    private JwtUtil jwtUtil;
+    JwtUtil jwtUtil;
 
 //    @Override
 //    protected void doFilterInternal(HttpServletRequest request,
