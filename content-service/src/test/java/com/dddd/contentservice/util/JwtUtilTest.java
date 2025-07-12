@@ -1,44 +1,43 @@
 package com.dddd.contentservice.util;
 
 import io.jsonwebtoken.Claims;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(properties = {
-        "jwt.secret=mysupersecuresecretkeymysupersecure"
-})
-@ActiveProfiles("test")
-class JwtUtilTest {
+public class JwtUtilTest {
 
-    private final JwtUtil jwtUtil;
+    private JwtUtil jwtUtil;
 
-    JwtUtilTest(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
+    @BeforeEach
+    void setUp() {
+        jwtUtil = new JwtUtil();
+
+        // 用反射设置 private 字段 secret，并初始化 secretKey
+        var secret = "mysupersecuresecretkeymysupersecure";
+        var secretField = assertDoesNotThrow(() -> JwtUtil.class.getDeclaredField("secret"));
+        secretField.setAccessible(true);
+        assertDoesNotThrow(() -> secretField.set(jwtUtil, secret));
+
+        // 调用 @PostConstruct 初始化 secretKey
+        jwtUtil.init();
     }
 
     @Test
     void testGenerateAndValidateToken() {
-        String token = jwtUtil.generateToken("user1", "ROLE_USER", 123L);
-        assertNotNull(token);
-
+        String token = jwtUtil.generateToken("user1", "ADMIN", 123L);
         Claims claims = jwtUtil.validateTokenAndGetClaims(token);
-        assertEquals("ROLE_USER", claims.get("role"));
-        assertEquals(123, ((Number) claims.get("userId")).longValue());
+
         assertEquals("user1", claims.getSubject());
+        assertEquals("ADMIN", claims.get("role"));
+        assertEquals(123, claims.get("userId", Integer.class));
     }
 
     @Test
     void testInvalidToken() {
         String invalidToken = "invalid.token.value";
-
-        Exception exception = assertThrows(Exception.class, () -> {
-            jwtUtil.validateTokenAndGetClaims(invalidToken);
-        });
-
-        assertNotNull(exception.getMessage());
+        assertThrows(Exception.class, () -> jwtUtil.validateTokenAndGetClaims(invalidToken));
     }
 }
 
