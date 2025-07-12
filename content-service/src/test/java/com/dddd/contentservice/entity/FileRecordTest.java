@@ -11,20 +11,32 @@ class FileRecordTest {
     @Test
     void testGettersAndSetters() {
         FileRecord record = new FileRecord();
-        LocalDateTime now = LocalDateTime.now();
 
-        record.setId(1L);
-        record.setUserId("user123");
-        record.setOriginalName("image.png");
-        record.setOssKey("uploads/user123/image.png");
-        record.setUrl("https://example.com/uploads/user123/image.png");
-        record.setUploadedAt(now);
+        Long id = 1L;
+        String userId = "123";
+        String originalName = "file.txt";
+        String ossKey = "uploads/123/file.txt";
+        String url = "https://bucket.oss-cn-region.aliyuncs.com/uploads/123/file.txt";
+        LocalDateTime uploadedAt = LocalDateTime.now();
 
-        assertEquals(1L, record.getId());
-        assertEquals("user123", record.getUserId());
-        assertEquals("image.png", record.getOriginalName());
-        assertEquals("uploads/user123/image.png", record.getOssKey());
-        assertEquals("https://example.com/uploads/user123/image.png", record.getUrl());
-        assertEquals(now, record.getUploadedAt());
+        record.setId(id);
+        record.setUserId(userId);
+        record.setOriginalName(originalName);
+        record.setOssKey(ossKey);
+        record.setUrl(url);
+        record.setUploadedAt(uploadedAt);
+
+        assertEquals(id, record.getId());
+        assertEquals(userId, record.getUserId());
+        assertEquals(originalName, record.getOriginalName());
+        assertEquals(ossKey, record.getOssKey());
+        assertEquals(url, record.getUrl());
+        assertEquals(uploadedAt, record.getUploadedAt());
+    }
+
+    @Test
+    void testNoArgsConstructor() {
+        FileRecord record = new FileRecord();
+        assertNotNull(record);
     }
 }

@@ -14,7 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     @Autowired
-    private JwtUserIdInjectionFilter jwtUserIdInjectionFilter;
+    JwtUserIdInjectionFilter jwtUserIdInjectionFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
