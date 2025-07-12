@@ -23,12 +23,21 @@ public class GptContentChecker {
     @Value("${openai.api-key}")
     private String openaiApiKey;
 
+    private final RestTemplate restTemplate;
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     private static final String GPT_URL = "https://api.openai.com/v1/chat/completions";
-    private static final String WHISPER_URL = "https://api.openai.com/v1/audio/transcriptions";
     private static final String MODEL = "gpt-4o";
 
-    private static final RestTemplate restTemplate = new RestTemplate();
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    // ✅ 生产环境使用默认构造
+    public GptContentChecker() {
+        this.restTemplate = new RestTemplate();
+    }
+
+    // ✅ 测试时注入 mock RestTemplate
+    public GptContentChecker(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     public String checkText(String text) {
         try {
