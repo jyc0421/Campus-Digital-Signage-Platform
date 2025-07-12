@@ -69,60 +69,60 @@ public class GptContentChecker {
         }
     }
 
-    public String checkVideo(MultipartFile videoFile) {
-        File tmpVideo = null;
-        try {
-            tmpVideo = File.createTempFile("upload-", ".mp4");
-            videoFile.transferTo(tmpVideo);
-
-            File framesDir = new File("frames");
-            if (!framesDir.exists() && !framesDir.mkdirs()) {
-                return "⚠️ 创建帧目录失败";
-            }
-
-            ProcessBuilder frameCmd = new ProcessBuilder("ffmpeg", "-i", tmpVideo.getAbsolutePath(),
-                    "-vf", "fps=1/3", "frames/frame_%03d.png");
-            frameCmd.redirectErrorStream(true);
-            frameCmd.start().waitFor();
-
-            List<File> frames = Optional.ofNullable(framesDir.listFiles())
-                    .map(Arrays::stream).orElse(Stream.empty())
-                    .sorted().limit(3).collect(Collectors.toList());
-
-            List<String> imageResults = new ArrayList<>();
-            for (File frame : frames) {
-                byte[] bytes = Files.readAllBytes(frame.toPath());
-                imageResults.add(checkImageBytes(Base64.getEncoder().encodeToString(bytes)));
-            }
-
-            File audioFile = new File("audio.mp3");
-            ProcessBuilder audioCmd = new ProcessBuilder("ffmpeg", "-i", tmpVideo.getAbsolutePath(),
-                    "-q:a", "0", "-map", "a", audioFile.getAbsolutePath());
-            audioCmd.redirectErrorStream(true);
-            audioCmd.start().waitFor();
-
-            String transcript = whisperTranscribe(audioFile);
-            String audioCheck = checkText(transcript);
-
-            if (imageResults.stream().anyMatch(r -> r.contains("违规")) || audioCheck.contains("违规")) {
-                return "违规内容：图片=" + imageResults + "，音频=" + audioCheck;
-            }
-
-            return "合规";
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt(); // 正确处理 InterruptedException
-            return "视频分析中断：" + e.getMessage();
-        } catch (Exception e) {
-            return "视频放行：" + e.getMessage();
-        } finally {
-            if (tmpVideo != null && tmpVideo.exists()) {
-                boolean deleted = tmpVideo.delete();
-                if (!deleted) {
-                    System.err.println("⚠️ 临时文件删除失败：" + tmpVideo.getAbsolutePath());
-                }
-            }
-        }
-    }
+//    public String checkVideo(MultipartFile videoFile) {
+//        File tmpVideo = null;
+//        try {
+//            tmpVideo = File.createTempFile("upload-", ".mp4");
+//            videoFile.transferTo(tmpVideo);
+//
+//            File framesDir = new File("frames");
+//            if (!framesDir.exists() && !framesDir.mkdirs()) {
+//                return "⚠️ 创建帧目录失败";
+//            }
+//
+//            ProcessBuilder frameCmd = new ProcessBuilder("ffmpeg", "-i", tmpVideo.getAbsolutePath(),
+//                    "-vf", "fps=1/3", "frames/frame_%03d.png");
+//            frameCmd.redirectErrorStream(true);
+//            frameCmd.start().waitFor();
+//
+//            List<File> frames = Optional.ofNullable(framesDir.listFiles())
+//                    .map(Arrays::stream).orElse(Stream.empty())
+//                    .sorted().limit(3).collect(Collectors.toList());
+//
+//            List<String> imageResults = new ArrayList<>();
+//            for (File frame : frames) {
+//                byte[] bytes = Files.readAllBytes(frame.toPath());
+//                imageResults.add(checkImageBytes(Base64.getEncoder().encodeToString(bytes)));
+//            }
+//
+//            File audioFile = new File("audio.mp3");
+//            ProcessBuilder audioCmd = new ProcessBuilder("ffmpeg", "-i", tmpVideo.getAbsolutePath(),
+//                    "-q:a", "0", "-map", "a", audioFile.getAbsolutePath());
+//            audioCmd.redirectErrorStream(true);
+//            audioCmd.start().waitFor();
+//
+//            String transcript = whisperTranscribe(audioFile);
+//            String audioCheck = checkText(transcript);
+//
+//            if (imageResults.stream().anyMatch(r -> r.contains("违规")) || audioCheck.contains("违规")) {
+//                return "违规内容：图片=" + imageResults + "，音频=" + audioCheck;
+//            }
+//
+//            return "合规";
+//        } catch (InterruptedException e) {
+//            Thread.currentThread().interrupt(); // 正确处理 InterruptedException
+//            return "视频分析中断：" + e.getMessage();
+//        } catch (Exception e) {
+//            return "视频放行：" + e.getMessage();
+//        } finally {
+//            if (tmpVideo != null && tmpVideo.exists()) {
+//                boolean deleted = tmpVideo.delete();
+//                if (!deleted) {
+//                    System.err.println("⚠️ 临时文件删除失败：" + tmpVideo.getAbsolutePath());
+//                }
+//            }
+//        }
+//    }
 
     String checkImageBytes(String base64Image) {
         try {
@@ -160,25 +160,25 @@ public class GptContentChecker {
         }
     }
 
-    String whisperTranscribe(File audioFile) {
-        try {
-            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-            body.add("file", new FileSystemResource(audioFile));
-            body.add("model", "whisper-1");
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(openaiApiKey);
-            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-
-            HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
-            ResponseEntity<Map> response = restTemplate.postForEntity(WHISPER_URL, request, Map.class);
-
-            Map<String, Object> responseBody = getSafeResponseBody(response);
-            return responseBody != null ? responseBody.getOrDefault("text", "").toString() : "⚠️ Whisper无响应";
-        } catch (Exception e) {
-            return "⚠️ Whisper转写失败：" + e.getMessage();
-        }
-    }
+//    String whisperTranscribe(File audioFile) {
+//        try {
+//            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+//            body.add("file", new FileSystemResource(audioFile));
+//            body.add("model", "whisper-1");
+//
+//            HttpHeaders headers = new HttpHeaders();
+//            headers.setBearerAuth(openaiApiKey);
+//            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+//
+//            HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
+//            ResponseEntity<Map> response = restTemplate.postForEntity(WHISPER_URL, request, Map.class);
+//
+//            Map<String, Object> responseBody = getSafeResponseBody(response);
+//            return responseBody != null ? responseBody.getOrDefault("text", "").toString() : "⚠️ Whisper无响应";
+//        } catch (Exception e) {
+//            return "⚠️ Whisper转写失败：" + e.getMessage();
+//        }
+//    }
 
     private HttpHeaders createJsonHeaders() {
         HttpHeaders headers = new HttpHeaders();

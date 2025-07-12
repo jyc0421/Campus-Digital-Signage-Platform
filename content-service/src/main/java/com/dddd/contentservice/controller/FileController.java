@@ -64,14 +64,14 @@ public class FileController {
             }
         }
 
-        // 视频内容审查
-        if (fileType != null && fileType.startsWith("video/")) {
-            String result = contentChecker.checkVideo(file);
-            System.out.println("🎞️ 视频审查：" + result);
-            if (result.contains("违规")) {
-                return ApiResponse.fail("❌ 视频内容不合规：" + result);
-            }
-        }
+//        // 视频内容审查
+//        if (fileType != null && fileType.startsWith("video/")) {
+//            String result = contentChecker.checkVideo(file);
+//            System.out.println("🎞️ 视频审查：" + result);
+//            if (result.contains("违规")) {
+//                return ApiResponse.fail("❌ 视频内容不合规：" + result);
+//            }
+//        }
 
         // 2️⃣ 合规 → 上传
         UploadResponse response = fileService.upload(file, String.valueOf(userId));
