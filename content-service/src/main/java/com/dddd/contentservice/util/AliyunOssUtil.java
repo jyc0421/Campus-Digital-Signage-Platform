@@ -14,7 +14,7 @@ import java.util.UUID;
 public class AliyunOssUtil {
 
     @Autowired
-    private AliyunOssConfig config;
+    AliyunOssConfig config;
 
     public String uploadFile(MultipartFile file, String userId) throws IOException {
         String fileName = "uploads/" + userId + "/" + UUID.randomUUID() + "-" + file.getOriginalFilename();
