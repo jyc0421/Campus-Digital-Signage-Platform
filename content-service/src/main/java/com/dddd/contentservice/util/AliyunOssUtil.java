@@ -14,27 +14,36 @@ import java.util.UUID;
 public class AliyunOssUtil {
 
     @Autowired
-    AliyunOssConfig config;
+    private AliyunOssConfig config;
+
+    private final OSSClientBuilder ossClientBuilder;
+
+    public AliyunOssUtil() {
+        this.ossClientBuilder = new OSSClientBuilder();
+    }
+
+    // 给测试用的构造器
+    public AliyunOssUtil(AliyunOssConfig config, OSSClientBuilder ossClientBuilder) {
+        this.config = config;
+        this.ossClientBuilder = ossClientBuilder;
+    }
 
     public String uploadFile(MultipartFile file, String userId) throws IOException {
         String fileName = "uploads/" + userId + "/" + UUID.randomUUID() + "-" + file.getOriginalFilename();
-
-        OSS ossClient = new OSSClientBuilder().build(
+        OSS ossClient = ossClientBuilder.build(
                 config.getEndpoint(), config.getAccessKeyId(), config.getAccessKeySecret());
 
         ossClient.putObject(config.getBucketName(), fileName, file.getInputStream());
-
         ossClient.shutdown();
 
         return "https://" + config.getBucketName() + "." + config.getEndpoint().replace("https://", "") + "/" + fileName;
     }
 
     public void deleteFile(String objectKey) {
-        OSS ossClient = new OSSClientBuilder().build(
+        OSS ossClient = ossClientBuilder.build(
                 config.getEndpoint(), config.getAccessKeyId(), config.getAccessKeySecret());
 
         ossClient.deleteObject(config.getBucketName(), objectKey);
-
         ossClient.shutdown();
     }
 }
