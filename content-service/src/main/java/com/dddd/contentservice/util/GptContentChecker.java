@@ -75,9 +75,7 @@ public class GptContentChecker {
             return "⚠️ 视频为空";
         }
         return "合规";
-    }
 
-//    public String checkVideo(MultipartFile videoFile) {
 //        File tmpVideo = null;
 //        try {
 //            tmpVideo = File.createTempFile("upload-", ".mp4");
@@ -130,7 +128,7 @@ public class GptContentChecker {
 //                }
 //            }
 //        }
-//    }
+    }
 
     String checkImageBytes(String base64Image) {
         try {
