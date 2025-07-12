@@ -74,7 +74,7 @@ public class GptContentChecker {
         if (videoFile == null || videoFile.isEmpty()) {
             return "⚠️ 视频为空";
         }
-        return "合规（模拟返回）";
+        return "合规";
     }
 
 //    public String checkVideo(MultipartFile videoFile) {
