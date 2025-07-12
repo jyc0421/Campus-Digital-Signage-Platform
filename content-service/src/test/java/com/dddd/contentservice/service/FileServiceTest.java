@@ -6,65 +6,110 @@ import com.dddd.contentservice.repository.FileRecordRepository;
 import com.dddd.contentservice.util.AliyunOssUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.ActiveProfiles;
+import org.mockito.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ActiveProfiles("test")
-public class FileServiceTest {
+class FileServiceTest {
 
-    private FileService fileService;
+    @Mock
     private FileRecordRepository fileRecordRepository;
+
+    @Mock
     private AliyunOssUtil aliyunOssUtil;
+
+    @Mock
+    private MultipartFile mockFile;
+
+    @InjectMocks
+    private FileService fileService;
 
     @BeforeEach
     void setUp() {
-        fileRecordRepository = mock(FileRecordRepository.class);
-        aliyunOssUtil = mock(AliyunOssUtil.class);
-        fileService = new FileService(fileRecordRepository, aliyunOssUtil);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    void testUploadFile_success() throws IOException {
-        // 准备模拟数据
-        String userId = "user123";
-        MockMultipartFile file = new MockMultipartFile(
-                "file", "test.jpg", "image/jpeg", "fake-content".getBytes());
-        String fakeUrl = "https://oss.aliyun.com/uploads/user123/test.jpg";
+    void testUpload() throws Exception {
+        String userId = "123";
+        String filename = "test.txt";
+        String url = "https://bucket.endpoint/uploads/123/uuid-test.txt";
 
-        // 模拟 Aliyun OSS 上传行为
-        when(aliyunOssUtil.uploadFile(any(), any())).thenAnswer(invocation -> {
-            return fakeUrl;
+        when(mockFile.getOriginalFilename()).thenReturn(filename);
+        when(aliyunOssUtil.uploadFile(mockFile, userId)).thenReturn(url);
+        when(fileRecordRepository.save(any())).thenAnswer(invocation -> {
+            FileRecord record = invocation.getArgument(0);
+            record.setId(999L); // 模拟数据库生成ID
+            return record;
         });
-        // 模拟数据库保存时自动生成 ID（模拟 JPA 行为）
-        when(fileRecordRepository.save(any(FileRecord.class)))
-                .thenAnswer(invocation -> {
-                    FileRecord record = invocation.getArgument(0);
-                    record.setId(42L); // 关键点：设置 ID
-                    return record;
-                });
 
-        // 执行上传逻辑
-        UploadResponse response = fileService.upload(file, userId);
+        UploadResponse response = fileService.upload(mockFile, userId);
 
-        // 验证返回体
-        assertEquals(fakeUrl, response.getUrl());
-        assertEquals(42L, response.getFileId());
+        assertEquals(url, response.getUrl());
+        assertEquals(999L, response.getFileId());
+    }
 
-        // 验证数据库保存内容
-        ArgumentCaptor<FileRecord> captor = ArgumentCaptor.forClass(FileRecord.class);
-        verify(fileRecordRepository).save(captor.capture());
-        FileRecord saved = captor.getValue();
+    @Test
+    void testGetFilesByUser() {
+        String userId = "123";
+        FileRecord record = new FileRecord();
+        record.setId(1L);
+        record.setUserId(userId);
+        record.setUrl("https://xxx");
 
-        assertEquals(userId, saved.getUserId());
-        assertEquals("test.jpg", saved.getOriginalName());
-        assertTrue(saved.getOssKey().startsWith("uploads/"));
-        assertEquals(fakeUrl, saved.getUrl());
-        assertNotNull(saved.getUploadedAt());
+        when(fileRecordRepository.findByUserId(userId)).thenReturn(List.of(record));
+
+        List<FileRecord> result = fileService.getFilesByUser(userId);
+
+        assertEquals(1, result.size());
+        assertEquals("https://xxx", result.get(0).getUrl());
+    }
+
+    @Test
+    void testDeleteFile_success() {
+        Long id = 1L;
+        String userId = "123";
+
+        FileRecord record = new FileRecord();
+        record.setId(id);
+        record.setUserId(userId);
+        record.setOssKey("uploads/123/file.txt");
+
+        when(fileRecordRepository.findById(id)).thenReturn(Optional.of(record));
+
+        String result = fileService.deleteFile(id, userId);
+
+        assertEquals("File deleted", result);
+        verify(aliyunOssUtil).deleteFile("uploads/123/file.txt");
+        verify(fileRecordRepository).deleteById(id);
+    }
+
+    @Test
+    void testDeleteFile_fileNotFound() {
+        when(fileRecordRepository.findById(1L)).thenReturn(Optional.empty());
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> fileService.deleteFile(1L, "123"));
+        assertEquals("File not found", ex.getMessage());
+    }
+
+    @Test
+    void testDeleteFile_unauthorized() {
+        FileRecord record = new FileRecord();
+        record.setId(1L);
+        record.setUserId("other-user");
+
+        when(fileRecordRepository.findById(1L)).thenReturn(Optional.of(record));
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> fileService.deleteFile(1L, "123"));
+        assertEquals("Unauthorized", ex.getMessage());
     }
 }

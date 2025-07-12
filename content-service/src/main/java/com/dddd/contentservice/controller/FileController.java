@@ -18,10 +18,10 @@ import java.util.List;
 public class FileController {
 
     @Autowired
-    private FileService fileService;
+    FileService fileService;
 
     @Autowired
-    private GptContentChecker contentChecker;
+    GptContentChecker contentChecker;
 //
 //    @PostMapping("/upload")
 //    public UploadResponse uploadFile(@RequestParam("file") MultipartFile file,
