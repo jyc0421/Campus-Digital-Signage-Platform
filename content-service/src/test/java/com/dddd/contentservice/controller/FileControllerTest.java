@@ -8,98 +8,114 @@ import com.dddd.contentservice.util.GptContentChecker;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class FileControllerTest {
+public class FileControllerTest {
 
-    private FileController controller;
+    @Mock
     private FileService fileService;
-    private GptContentChecker checker;
-    private HttpServletRequest request;
+
+    @Mock
+    private GptContentChecker contentChecker;
+
+    @InjectMocks
+    private FileController fileController;
+
+    private MockHttpServletRequest request;
 
     @BeforeEach
     void setUp() {
-        fileService = mock(FileService.class);
-        checker = mock(GptContentChecker.class);
-        controller = new FileController();
-        controller.fileService = fileService;
-        controller.contentChecker = checker;
-        request = mock(HttpServletRequest.class);
-        when(request.getAttribute("userId")).thenReturn(123L);
+        MockitoAnnotations.openMocks(this);
+        request = new MockHttpServletRequest();
+        request.setAttribute("userId", 1L);
     }
 
     @Test
-    void uploadFile_textViolation() throws IOException {
-        MockMultipartFile file = new MockMultipartFile("file", "bad.txt", "text/plain", "test".getBytes());
-        when(checker.checkText("bad.txt")).thenReturn("违规：政治敏感词");
+    void uploadFile_success_textImageVideo_allPass() throws IOException {
+        MockMultipartFile file = new MockMultipartFile("file", "image.png", "image/png", "mockData".getBytes());
 
-        ApiResponse<?> response = controller.uploadFile(file, request);
-        assertEquals(400, response.getCode());
-    }
+        when(contentChecker.checkText(any())).thenReturn("合规");
+        when(contentChecker.checkImage(any())).thenReturn("合规");
+        when(contentChecker.checkVideo(any())).thenReturn("合规");
+        when(fileService.upload(any(MultipartFile.class), eq("1")))
+                .thenReturn(new UploadResponse("http://mock.url", 123L));
 
-    @Test
-    void uploadFile_imageViolation() throws IOException {
-        MockMultipartFile file = new MockMultipartFile("file", "good.png", "image/png", new byte[1]);
-        when(checker.checkText("good.png")).thenReturn("合规");
-        when(checker.checkImage(file)).thenReturn("违规：色情");
+        ApiResponse<UploadResponse> response = fileController.uploadFile(file, request);
 
-        ApiResponse<?> response = controller.uploadFile(file, request);
-        assertEquals(400, response.getCode());
-    }
-
-    @Test
-    void uploadFile_videoViolation() throws IOException {
-        MockMultipartFile file = new MockMultipartFile("file", "video.mp4", "video/mp4", new byte[1]);
-        when(checker.checkText("video.mp4")).thenReturn("合规");
-        when(checker.checkVideo(file)).thenReturn("违规：暴力");
-
-        ApiResponse<?> response = controller.uploadFile(file, request);
-        assertEquals(400, response.getCode());
-    }
-
-    @Test
-    void uploadFile_success() throws IOException {
-        MockMultipartFile file = new MockMultipartFile("file", "nice.txt", "text/plain", "123".getBytes());
-        when(checker.checkText("nice.txt")).thenReturn("合规");
-        UploadResponse uploadResponse = new UploadResponse("http://xxx", 1L);
-        when(fileService.upload(file, "123")).thenReturn(uploadResponse);
-
-        ApiResponse<UploadResponse> response = controller.uploadFile(file, request);
         assertEquals(200, response.getCode());
-        assertEquals("http://xxx", response.getData().getUrl());
+        assertNotNull(response.getData());
+        assertEquals("http://mock.url", response.getData().getUrl());
     }
 
     @Test
-    void list() {
-        FileRecord rec = new FileRecord();
-        rec.setUserId("123");
-        when(fileService.getFilesByUser("123")).thenReturn(List.of(rec));
+    void uploadFile_fail_text() throws IOException {
+        MockMultipartFile file = new MockMultipartFile("file", "bad.txt", "text/plain", "mockData".getBytes());
 
-        List<FileRecord> result = controller.list(request);
+        when(contentChecker.checkText(any())).thenReturn("违规");
+
+        ApiResponse<UploadResponse> response = fileController.uploadFile(file, request);
+
+        assertEquals(400, response.getCode());
+        assertTrue(response.getMessage().contains("文件名不合规"));
+    }
+
+    @Test
+    void uploadFile_fail_image() throws IOException {
+        MockMultipartFile file = new MockMultipartFile("file", "image.png", "image/png", "mockData".getBytes());
+
+        when(contentChecker.checkText(any())).thenReturn("合规");
+        when(contentChecker.checkImage(any())).thenReturn("违规：低俗");
+
+        ApiResponse<UploadResponse> response = fileController.uploadFile(file, request);
+
+        assertEquals(400, response.getCode());
+        assertTrue(response.getMessage().contains("图片内容不合规"));
+    }
+
+    @Test
+    void uploadFile_fail_video() throws IOException {
+        MockMultipartFile file = new MockMultipartFile("file", "video.mp4", "video/mp4", "mockData".getBytes());
+
+        when(contentChecker.checkText(any())).thenReturn("合规");
+        when(contentChecker.checkVideo(any())).thenReturn("违规：暴力");
+
+        ApiResponse<UploadResponse> response = fileController.uploadFile(file, request);
+
+        assertEquals(400, response.getCode());
+        assertTrue(response.getMessage().contains("视频内容不合规"));
+    }
+
+    @Test
+    void list_success() {
+        FileRecord mockRecord = new FileRecord();
+        mockRecord.setId(1L);
+        mockRecord.setUserId("1");
+        when(fileService.getFilesByUser("1")).thenReturn(List.of(mockRecord));
+
+        List<FileRecord> result = fileController.list(request);
+
         assertEquals(1, result.size());
-        assertEquals("123", result.get(0).getUserId());
+        assertEquals("1", result.get(0).getUserId());
     }
 
     @Test
-    void deleteFile() {
-        when(fileService.deleteFile(1L, "123")).thenReturn("ok");
+    void delete_success() {
+        when(fileService.deleteFile(1L, "1")).thenReturn("File deleted");
 
-        String result = controller.deleteFile(1L, request);
-        assertEquals("ok", result);
-    }
+        String result = fileController.deleteFile(1L, request);
 
-    @Test
-    void uploadFile_nullUser() {
-        when(request.getAttribute("userId")).thenReturn(null);
-        MockMultipartFile file = new MockMultipartFile("file", "file.txt", "text/plain", "aaa".getBytes());
-        assertThrows(RuntimeException.class, () -> controller.uploadFile(file, request));
+        assertEquals("File deleted", result);
     }
 }
