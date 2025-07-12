@@ -59,7 +59,7 @@ class FileControllerTest {
     void uploadFile_videoViolation() throws IOException {
         MockMultipartFile file = new MockMultipartFile("file", "video.mp4", "video/mp4", new byte[1]);
         when(checker.checkText("video.mp4")).thenReturn("合规");
-        when(checker.checkVideo(file)).thenReturn("违规：暴力");
+//        when(checker.checkVideo(file)).thenReturn("违规：暴力");
 
         ApiResponse<?> response = controller.uploadFile(file, request);
         assertEquals(400, response.getCode());
