@@ -29,9 +29,9 @@ class GptContentCheckerTest {
         checker = new GptContentChecker();
         mockRestTemplate = mock(RestTemplate.class);
 
-        // 用 Spring 工具注入私有字段
+        // ✅ 实例字段注入（不要写成 GptContentChecker.class）
         ReflectionTestUtils.setField(checker, "openaiApiKey", "dummy-key");
-        ReflectionTestUtils.setField(GptContentChecker.class, "restTemplate", mockRestTemplate);
+        ReflectionTestUtils.setField(checker, "restTemplate", mockRestTemplate);
     }
 
     @Test
