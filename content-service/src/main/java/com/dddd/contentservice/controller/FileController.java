@@ -20,9 +20,9 @@ public class FileController {
     @Autowired
     FileService fileService;
 
-    @Autowired
-    GptContentChecker contentChecker;
-//
+//    @Autowired
+//    GptContentChecker contentChecker;
+////
 //    @PostMapping("/upload")
 //    public UploadResponse uploadFile(@RequestParam("file") MultipartFile file,
 //                                     HttpServletRequest request) throws IOException {
