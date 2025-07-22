@@ -47,8 +47,10 @@ public class FileController {
         // ✅ 轮询逻辑（控制合规/违规交替出现）
         if (toggle) {
             toggle = false; // 下一次就不通过
+            System.out.println("✅ 上传允许通过");
         } else {
             toggle = true;
+            System.out.println("❌ 上传被拦截");
             return ApiResponse.fail("❌ 内容不合规");
         }
 
