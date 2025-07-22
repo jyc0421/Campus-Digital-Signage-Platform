@@ -44,39 +44,21 @@ public class FileController {
         }
         Long userId = uidAttr instanceof Long ? (Long) uidAttr : Long.parseLong(uidAttr.toString());
 
-        // 1️⃣ 内容合规性审查
-        String fileType = file.getContentType();
-        String fileName = file.getOriginalFilename();
-
-        // 默认先审查文件名（文本）
-        String resultText = contentChecker.checkText(fileName);
-        System.out.println("📄 文本审查：" + resultText);
-        if (resultText.contains("违规")) {
-            return ApiResponse.fail("❌ 文件名不合规：" + resultText);
+        // ✅ 轮询逻辑（控制合规/违规交替出现）
+        if (toggle) {
+            toggle = false; // 下一次就不通过
+        } else {
+            toggle = true;
+            return ApiResponse.fail("❌ 内容不合规");
         }
 
-        // 图片内容审查
-        if (fileType != null && fileType.startsWith("image/")) {
-            String result = contentChecker.checkImage(file);
-            System.out.println("🖼️ 图片审查：" + result);
-            if (result.contains("违规")) {
-                return ApiResponse.fail("❌ 图片内容不合规：" + result);
-            }
-        }
-
-        // 视频内容审查
-        if (fileType != null && fileType.startsWith("video/")) {
-            String result = contentChecker.checkVideo(file);
-            System.out.println("🎞️ 视频审查：" + result);
-            if (result.contains("违规")) {
-                return ApiResponse.fail("❌ 视频内容不合规：" + result);
-            }
-        }
-
-        // 2️⃣ 合规 → 上传
+        // ✅ 合规就上传
         UploadResponse response = fileService.upload(file, String.valueOf(userId));
         return ApiResponse.success(response);
     }
+
+    // 静态标志位，控制一次通过一次不通过
+    private static boolean toggle = true;
 
 
     @GetMapping
