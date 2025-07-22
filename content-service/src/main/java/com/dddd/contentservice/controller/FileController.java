@@ -36,6 +36,7 @@ public class FileController {
     @PostMapping("/upload")
     public ApiResponse<UploadResponse> uploadFile(@RequestParam("file") MultipartFile file,
                                                   HttpServletRequest request) throws IOException {
+        System.out.println("📥 Controller 收到文件");
         Object uidAttr = request.getAttribute("userId");
         System.out.println("📥 Controller 收到 userId: " + uidAttr);
 
@@ -43,6 +44,7 @@ public class FileController {
             throw new RuntimeException("❌ 用户未登录，userId 为 null");
         }
         Long userId = uidAttr instanceof Long ? (Long) uidAttr : Long.parseLong(uidAttr.toString());
+        System.out.println("现在toggle为"+toggle);
 
         // ✅ 轮询逻辑（控制合规/违规交替出现）
         if (toggle) {
@@ -54,6 +56,7 @@ public class FileController {
             return ApiResponse.fail("❌ 内容不合规");
         }
 
+        System.out.println("现在toggle为"+toggle);
         // ✅ 合规就上传
         UploadResponse response = fileService.upload(file, String.valueOf(userId));
         return ApiResponse.success(response);
