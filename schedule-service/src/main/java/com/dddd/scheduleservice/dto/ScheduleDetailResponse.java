@@ -26,7 +26,7 @@ public class ScheduleDetailResponse {
 
     @Data
     public static class PanelItem {
-        private Long id;
+        private Long panelId;
         private String name;
         private String location;
     }

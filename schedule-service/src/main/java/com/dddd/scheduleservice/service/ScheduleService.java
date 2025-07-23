@@ -118,13 +118,12 @@ public class ScheduleService {
         List<Panel> panelList = panelRepository.findAllById(panelIds);
         List<ScheduleDetailResponse.PanelItem> panelItems = panelList.stream().map(p -> {
             ScheduleDetailResponse.PanelItem pi = new ScheduleDetailResponse.PanelItem();
-            pi.setId(p.getId());
+            pi.setPanelId(p.getId());
             pi.setName(p.getName());
             pi.setLocation(p.getLocation());
             return pi;
         }).toList();
         resp.setPanels(panelItems);
-
         return resp;
     }
     public String deleteSchedule(Long scheduleId, Long userId) {
