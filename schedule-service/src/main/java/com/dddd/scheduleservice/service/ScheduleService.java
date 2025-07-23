@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ScheduleService {
@@ -76,15 +77,17 @@ public class ScheduleService {
             resp.setStartTime(schedule.getStartTime());
             resp.setEndTime(schedule.getEndTime());
             resp.setRepeatType(schedule.getRepeatType());
-            resp.setPriority(schedule.getPriority());
 
-            int contentCount = scheduleContentRepository.countByScheduleId(schedule.getId());
-            int panelCount = schedulePanelRepository.countByScheduleId(schedule.getId());
+            // 新增：设置关联的 panel_ids
+            List<SchedulePanel> schedulePanels = schedulePanelRepository.findByScheduleId(schedule.getId());
+            List<Long> panelIds = schedulePanels.stream()
+                    .map(SchedulePanel::getPanelId)
+                    .collect(Collectors.toList());
+            resp.setPanelIds(panelIds);
 
-            resp.setContentCount(contentCount);
-            resp.setPanelCount(panelCount);
             return resp;
         });
+
     }
     public ScheduleDetailResponse getScheduleDetail(Long scheduleId, Long userId) {
         Schedule schedule = scheduleRepository.findByIdAndSubscriberId(scheduleId, userId)

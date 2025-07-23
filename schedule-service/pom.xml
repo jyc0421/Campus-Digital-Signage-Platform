@@ -107,5 +107,9 @@
             <version>2.2.224</version> <!-- ✅ 推荐使用最新稳定版 -->
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
     </dependencies>
 </project>

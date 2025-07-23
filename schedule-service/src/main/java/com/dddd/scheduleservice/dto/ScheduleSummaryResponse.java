@@ -3,6 +3,7 @@ package com.dddd.scheduleservice.dto;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class ScheduleSummaryResponse {
@@ -14,4 +15,5 @@ public class ScheduleSummaryResponse {
     private Integer priority;
     private Integer contentCount;
     private Integer panelCount;
+    private List<Long> panelIds;
 }
