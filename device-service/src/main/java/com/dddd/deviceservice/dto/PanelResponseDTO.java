@@ -41,4 +41,8 @@ public class PanelResponseDTO {
      * 最后心跳时间
      */
     private LocalDateTime lastHeartbeat;
+
+    public PanelResponseDTO() {
+
+    }
 }

@@ -7,20 +7,19 @@ import com.dddd.contentservice.service.FileService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockMultipartFile;
+import org.mockito.*;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class FileControllerTest {
+class FileControllerTest {
 
     @Mock
     private FileService fileService;
@@ -28,77 +27,90 @@ public class FileControllerTest {
     @InjectMocks
     private FileController fileController;
 
-    private MockHttpServletRequest request;
-    private MultipartFile mockFile;
+    @Mock
+    private HttpServletRequest request;
+
+    @Mock
+    private MultipartFile file;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        request = new MockHttpServletRequest();
-        mockFile = new MockMultipartFile("file", "test.txt", "text/plain", "test content".getBytes());
-        // 重置轮询标志位
+    }
+
+    private void setToggle(boolean value) {
         try {
-            var field = FileController.class.getDeclaredField("toggle");
+            Field field = FileController.class.getDeclaredField("toggle");
             field.setAccessible(true);
-            field.set(null, true);
+            field.set(null, value);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     @Test
-    void testUpload_passThenFail() throws IOException {
-        request.setAttribute("userId", 1L);
-        when(fileService.upload(any(), eq("1")))
-                .thenReturn(new UploadResponse("mockUrl", 123L));
+    void testUploadSuccess() throws IOException {
+        setToggle(true);
 
-        // 第一次应上传成功
-        ApiResponse<UploadResponse> res1 = fileController.uploadFile(mockFile, request);
-        assertEquals(200, getCode(res1));
-        assertEquals("mockUrl", res1.getData().getUrl());
+        when(request.getAttribute("userId")).thenReturn(123L);
+        UploadResponse mockResponse = new UploadResponse("http://oss.com/f1.jpg", 999L);
+        when(fileService.upload(file, "123")).thenReturn(mockResponse);
 
-        // 第二次应失败
-        ApiResponse<UploadResponse> res2 = fileController.uploadFile(mockFile, request);
-        assertEquals(400, getCode(res2));
-        assertTrue(res2.getMessage().contains("不合规"));
+        ApiResponse<UploadResponse> result = fileController.uploadFile(file, request);
 
-        verify(fileService, times(1)).upload(any(), eq("1"));
+        assertEquals(200, result.getCode());
+        assertEquals("success", result.getMessage());
+        assertNotNull(result.getData());
+        assertEquals("http://oss.com/f1.jpg", result.getData().getUrl());
     }
 
     @Test
-    void testUpload_noUserId_shouldThrow() {
-        RuntimeException ex = assertThrows(RuntimeException.class, () ->
-                fileController.uploadFile(mockFile, request));
+    void testUploadRejectedForCompliance() throws IOException {
+        setToggle(false); // 不合规，拦截
+
+        when(request.getAttribute("userId")).thenReturn(123L);
+
+        ApiResponse<UploadResponse> result = fileController.uploadFile(file, request);
+
+        assertEquals(400, result.getCode());
+        assertEquals("❌ 内容不合规", result.getMessage());
+        assertNull(result.getData());
+    }
+
+    @Test
+    void testUploadWithNullUserId() {
+        when(request.getAttribute("userId")).thenReturn(null);
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            fileController.uploadFile(file, request);
+        });
+
         assertTrue(ex.getMessage().contains("userId 为 null"));
     }
 
     @Test
-    void testList_shouldReturnFiles() {
-        request.setAttribute("userId", 7L);
-        List<FileRecord> mockList = List.of(new FileRecord());
-        when(fileService.getFilesByUser("7")).thenReturn(mockList);
+    void testListFiles() {
+        when(request.getAttribute("userId")).thenReturn(123L);
+
+        FileRecord rec = new FileRecord();
+        rec.setUserId("123");
+        rec.setOriginalName("x.png");
+
+        when(fileService.getFilesByUser("123")).thenReturn(Collections.singletonList(rec));
 
         List<FileRecord> result = fileController.list(request);
+
         assertEquals(1, result.size());
+        assertEquals("x.png", result.get(0).getOriginalName());
     }
 
     @Test
-    void testDelete_shouldWork() {
-        request.setAttribute("userId", 9L);
-        when(fileService.deleteFile(22L, "9")).thenReturn("done");
+    void testDeleteFile() {
+        when(request.getAttribute("userId")).thenReturn(123L);
+        when(fileService.deleteFile(1L, "123")).thenReturn("File deleted");
 
-        String res = fileController.deleteFile(22L, request);
-        assertEquals("done", res);
-    }
+        String result = fileController.deleteFile(1L, request);
 
-    // 提取 code，兼容 ApiResponse 无 isSuccess 方法
-    private int getCode(ApiResponse<?> resp) {
-        try {
-            var f = resp.getClass().getDeclaredField("code");
-            f.setAccessible(true);
-            return (int) f.get(resp);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        assertEquals("File deleted", result);
     }
 }

@@ -1,9 +1,10 @@
 package com.dddd.authservice.service;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
-import com.dddd.authservice.dto.*;
+import com.dddd.authservice.dto.LoginRequest;
+import com.dddd.authservice.dto.LoginResponse;
+import com.dddd.authservice.dto.RegisterRequest;
 import com.dddd.authservice.entity.User;
+import com.dddd.authservice.exception.BusinessException;
 import com.dddd.authservice.repository.UserRepository;
 import com.dddd.authservice.util.JwtUtil;
 import com.dddd.authservice.util.PasswordEncoderUtil;
@@ -16,7 +17,13 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 class AuthServiceTest {
+
+    @Mock
+    private JwtUtil jwtUtil;
 
     @Mock
     private UserRepository userRepository;
@@ -24,76 +31,108 @@ class AuthServiceTest {
     @InjectMocks
     private AuthService authService;
 
-    @Mock
-    private JwtUtil jwtUtil;
-
-//    private PasswordEncoderUtil passwordEncoderUtil;
-
     @BeforeEach
-    void setup() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
-//        passwordEncoderUtil = new PasswordEncoderUtil(); // 直接用真实对象
     }
 
+    // 注册成功
     @Test
     void testRegisterSuccess() {
         RegisterRequest request = new RegisterRequest();
-        request.setUsername("testuser");
-        request.setEmail("test@example.com");
-        request.setPassword("password");
+        request.setUsername("newuser");
+        request.setEmail("newuser@example.com");
+        request.setPassword("123456");
 
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.empty());
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("newuser@example.com")).thenReturn(Optional.empty());
 
         String result = authService.register(request);
+
         assertEquals("Registration successful", result);
+        verify(userRepository).save(any(User.class));
     }
 
+    // 注册失败：用户名重复
     @Test
-    void testRegisterDuplicateUsername() {
+    void testRegisterUsernameTaken() {
         RegisterRequest request = new RegisterRequest();
-        request.setUsername("testuser");
+        request.setUsername("existing");
+        request.setEmail("new@example.com");
 
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(new User()));
+        when(userRepository.findByUsername("existing")).thenReturn(Optional.of(new User()));
 
         String result = authService.register(request);
         assertEquals("Username is already taken", result);
     }
 
+    // 注册失败：邮箱重复
+    @Test
+    void testRegisterEmailTaken() {
+        RegisterRequest request = new RegisterRequest();
+        request.setUsername("newuser");
+        request.setEmail("exist@example.com");
+
+        when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("exist@example.com")).thenReturn(Optional.of(new User()));
+
+        String result = authService.register(request);
+        assertEquals("Email is already registered", result);
+    }
+
+    // 登录成功
     @Test
     void testLoginSuccess() {
-        User user = new User();
-        user.setUsername("testuser");
-        user.setPasswordHash(PasswordEncoderUtil.encode("password"));
-        user.setRole(User.Role.user);
-        user.setUserId(1L);
-
         LoginRequest request = new LoginRequest();
         request.setUsername("testuser");
-        request.setPassword("password");
+        request.setPassword("123456");
+
+        User user = new User();
+        user.setUserId(1L);
+        user.setUsername("testuser");
+        user.setRole(User.Role.user);
+        user.setPasswordHash(PasswordEncoderUtil.encode("123456")); // 密码模拟加密
 
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
-        when(jwtUtil.generateToken("testuser", "user", 1L)).thenReturn("mock-jwt");
+        when(jwtUtil.generateToken("testuser", "user", 1L)).thenReturn("token123");
 
         LoginResponse response = authService.login(request);
-
-        assertNotNull(response.getToken());
-        assertEquals("mock-jwt", response.getToken());
+        assertEquals("token123", response.getToken());
     }
 
+    // 登录失败：用户不存在
     @Test
-    void testLoginWrongPassword() {
-        User user = new User();
-        user.setUsername("testuser");
-        user.setPasswordHash(PasswordEncoderUtil.encode("password"));
-
+    void testLoginUserNotFound() {
         LoginRequest request = new LoginRequest();
-        request.setUsername("testuser");
-        request.setPassword("wrong");
+        request.setUsername("nouser");
+        request.setPassword("123");
 
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername("nouser")).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> authService.login(request));
+        BusinessException ex = assertThrows(BusinessException.class, () -> {
+            authService.login(request);
+        });
+
+        assertEquals("User not found", ex.getMessage());
     }
 
+    // 登录失败：密码错误
+    @Test
+    void testLoginPasswordMismatch() {
+        LoginRequest request = new LoginRequest();
+        request.setUsername("user");
+        request.setPassword("wrongpassword");
+
+        User user = new User();
+        user.setUsername("user");
+        user.setPasswordHash(PasswordEncoderUtil.encode("correctpassword")); // 正确密码是别的
+
+        when(userRepository.findByUsername("user")).thenReturn(Optional.of(user));
+
+        BusinessException ex = assertThrows(BusinessException.class, () -> {
+            authService.login(request);
+        });
+
+        assertEquals("Invalid credentials", ex.getMessage());
+    }
 }
