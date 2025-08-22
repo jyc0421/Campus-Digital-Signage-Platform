@@ -1,8 +1,8 @@
 
-# Campus Digital Signage Platform | 校园数字标牌平台
+# Digital Data Distribution Display Platform
 
-A Spring Boot microservices-based backend system for digital signage management on campus.  
-基于 Spring Boot 微服务架构的校园数字标牌后台管理系统。
+A Spring Boot microservices-based backend system for DDDD Platform.  
+基于Spring Boot微服务的数字数据分发显示平台后端系统。
 
 ---
 
