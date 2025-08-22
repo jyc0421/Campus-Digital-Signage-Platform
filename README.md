@@ -106,9 +106,3 @@ target/site/index.html
 
 Open in browser to view. | 用浏览器打开查看即可。
 
----
-
-```
-
-如果你还需要我协助生成 `README.md` 文件下载版本、转为 PDF、或为每个模块单独写一份说明文档，也可以继续告诉我。
-```
